@@ -7,9 +7,8 @@ class OpenTracingClientInterceptor(object):
     def __init__(self, tracer):
         self.tracer = tracer
 
-    def __call__(self, request, metadata, invoker):
+    def __call__(self, method, request, metadata, invoker):
         # TODO: need a method to get the active parent span
-        operation_name = type(request).__name__
-        with self.tracer.start_span(operation_name):
+        with self.tracer.start_span(method):
             # TODO: inject the context into metadata
             return invoker(request, metadata)

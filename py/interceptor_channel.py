@@ -6,20 +6,38 @@ import grpc
 
 
 class InterceptorUnaryUnaryMultiCallable(grpc.UnaryUnaryMultiCallable):
-    def __init__(self, base_callable, interceptor):
+    def __init__(self, method, base_callable, interceptor):
+        self.method = method
         self.base_callable = base_callable
         self.interceptor = interceptor
 
     def __call__(self, request, timeout=None, metadata=None, credentials=None):
         def invoker(request, metadata):
             return self.base_callable(request, timeout, metadata, credentials)
-        return self.interceptor(request, metadata, invoker)
+        return self.interceptor(self.method, request, metadata, invoker)
 
     def with_call(self, *args, **kwargs):
         self.base_callable.with_call(*args, **kwargs)
 
     def future(self, *args, **kwargs):
         self.base_callable.future(*args, **kwargs)
+
+
+class InterceptorUnaryStreamMultiCallable(grpc.UnaryStreamMultiCallable):
+    def __call__(self, request, timeout=None, metadata=None, credentials=None):
+        pass
+
+
+class InterceptorStreamUnaryMultiCallable(grpc.StreamUnaryMultiCallable):
+    def __call__(
+      self, request_iterator, timeout=None, metadata=None, credentials=None):
+        pass
+
+
+class StreamStreamMultiCallable(grpc.StreamStreamMultiCallable):
+    def __call__(
+      self, request_iterator, timeout=None, metadata=None, credentials=None):
+        pass
 
 
 class InterceptorChannel(grpc.Channel):
@@ -33,10 +51,12 @@ class InterceptorChannel(grpc.Channel):
     def unsubscribe(self, *args, **kwargs):
         self.channel.unsubscribe(*args, **kwargs)
 
-    def unary_unary(self, *args, **kwargs):
-        base_callable = self.channel.unary_unary(*args, **kwargs)
+    def unary_unary(
+      self, method, request_serializer=None, response_deserializer=None):
+        base_callable = self.channel.unary_unary(
+          method, request_serializer, response_deserializer)
         return InterceptorUnaryUnaryMultiCallable(
-            base_callable, self.interceptor)
+            method, base_callable, self.interceptor)
 
     def unary_stream(self, *args, **kwargs):
         return self.channel.unary_stream(*args, **kwargs)

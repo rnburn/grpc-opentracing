@@ -1,3 +1,3 @@
 #!/bin/sh
-PYTHONPATH="../../py/"
+export PYTHONPATH="../../py/"
 python store_client.py
