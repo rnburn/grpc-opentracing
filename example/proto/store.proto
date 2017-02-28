@@ -1,3 +1,7 @@
+/**
+ * The interface for a minimalistic service that returns the quantity for a
+ * given item_id.
+ */
 syntax = "proto3";
 
 package store;

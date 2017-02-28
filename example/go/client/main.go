@@ -1,15 +1,18 @@
+/**
+ * A OpenTraced client for a go service that implements the store interface.
+ */
 package main
 
 import (
 	"log"
 
+	pb "../store"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "../store"
 )
 
 const (
-	address     = "localhost:50051"
+	address = "localhost:50051"
 )
 
 func main() {
@@ -22,7 +25,7 @@ func main() {
 	c := pb.NewStoreClient(conn)
 
 	// Contact the server and print out its response.
-  item_id := int32(22)
+	item_id := int32(22)
 	r, err := c.GetQuantity(context.Background(), &pb.QuantityRequest{item_id})
 	if err != nil {
 		log.Fatalf("could not get quantity: %v", err)

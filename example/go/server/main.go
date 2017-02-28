@@ -1,12 +1,15 @@
+/**
+ * A OpenTraced server for a go service that implements the store interface.
+ */
 package main
 
 import (
 	"log"
 	"net"
 
+	pb "../store"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	pb "../store"
 	"google.golang.org/grpc/reflection"
 )
 

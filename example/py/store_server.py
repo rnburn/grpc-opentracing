@@ -1,3 +1,4 @@
+# A OpenTraced server for a Python service that implements the store interface.
 from concurrent import futures
 import time
 
