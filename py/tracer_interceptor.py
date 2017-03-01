@@ -1,6 +1,16 @@
+import opentracing
 # Implementation for interceptors that implement open tracing. The plan is to
 # eventually check these into
 # https://github.com/grpc-ecosystem/grpc-opentracing
+
+
+def inject_span_context(tracer, span_context, metadata):
+    attributes = {}
+    tracer.inject(span_context, opentracing.Format.HTTP_HEADERS, attributes)
+    metadata = () if metadata is None else tuple(metadata)
+    span_metadata = tuple((key, value)
+                          for key, value in attributes.iteritems())
+    return metadata + span_metadata
 
 
 class OpenTracingClientInterceptor(object):
@@ -9,6 +19,14 @@ class OpenTracingClientInterceptor(object):
 
     def __call__(self, method, request, metadata, invoker):
         # TODO: need a method to get the active parent span
-        with self.tracer.start_span(method):
-            # TODO: inject the context into metadata
+        with self.tracer.start_span(method) as span:
+            metadata = inject_span_context(self.tracer, span.context, metadata)
             return invoker(request, metadata)
+
+
+class OpenTracingServerInterceptor(object):
+    def __call__(self, request, servicer_context, invoker):
+        print('before response')
+        response = invoker(request, servicer_context)
+        print('after response')
+        return response

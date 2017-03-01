@@ -5,4 +5,4 @@ then
   exit -1
 fi
 export PYTHONPATH="../../py/"
-python store_server.py
+go run server/main.go --access_token $LIGHT_STEP_ACCESS_TOKEN
