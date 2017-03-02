@@ -8,9 +8,7 @@ def inject_span_context(tracer, span_context, metadata):
     attributes = {}
     tracer.inject(span_context, opentracing.Format.HTTP_HEADERS, attributes)
     metadata = () if metadata is None else tuple(metadata)
-    span_metadata = tuple((key, value)
-                          for key, value in attributes.iteritems())
-    return metadata + span_metadata
+    return metadata + tuple(attributes.iteritems())
 
 
 class OpenTracingClientInterceptor(object):
@@ -26,7 +24,8 @@ class OpenTracingClientInterceptor(object):
 
 class OpenTracingServerInterceptor(object):
     def __call__(self, request, servicer_context, invoker):
-        print('before response')
+        print 'before response'
+        print 'metadata=' + str(servicer_context.invocation_metadata())
         response = invoker(request, servicer_context)
-        print('after response')
+        print 'after response'
         return response
