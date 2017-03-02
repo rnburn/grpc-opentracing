@@ -6,8 +6,8 @@ import sys
 import grpc
 
 import store_pb2
-from tracer_interceptor import OpenTracingServerInterceptor
 from grpcext import intercept_server
+from otgrpc import OpenTracingServerInterceptor
 import lightstep
 import argparse
 
