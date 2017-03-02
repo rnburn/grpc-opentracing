@@ -12,7 +12,7 @@ wonâ€™t work for the batch versions where multiple requests are sent at once. Iâ
 
 * **Add interceptors for the async and batch RPC calls for both the client-side and the server-side.**
 
-* **Add utility functions that can chain multiple interceptors.** The plan in to make something similar to this [function](http://www.grpc.io/grpc-java/javadoc/io/grpc/ClientInterceptors.html#intercept-io.grpc.Channel-java.util.List-) for the client-side and this [function](http://www.grpc.io/grpc-java/javadoc/io/grpc/ServerInterceptors.html#intercept-io.grpc.ServerServiceDefinition-io.grpc.ServerInterceptor...-) on there server-side.
+* **Add utility functions that can chain multiple interceptors.** The plan in to make something similar to this [function](http://www.grpc.io/grpc-java/javadoc/io/grpc/ClientInterceptors.html#intercept-io.grpc.Channel-java.util.List-) for the client-side and this [function](http://www.grpc.io/grpc-java/javadoc/io/grpc/ServerInterceptors.html#intercept-io.grpc.ServerServiceDefinition-io.grpc.ServerInterceptor...-) on the server-side.
 
 * **Move interceptor code into the gRPC repository.**
 
