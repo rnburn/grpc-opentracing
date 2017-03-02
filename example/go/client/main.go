@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	address = "localhost:50051"
+	address          = "localhost:50051"
+	ComponentNameKey = "lightstep.component_name"
 )
 
 var accessToken = flag.String("access_token", "", "your LightStep access token")
@@ -36,7 +37,7 @@ func main() {
 		AccessToken: *accessToken,
 	}
 	tracerOpts.Tags = make(opentracing.Tags)
-	tracerOpts.Tags["lightstep.component_name"] = "go.store-client"
+	tracerOpts.Tags[ComponentNameKey] = "go.store-client"
 	tracer := lightstep.NewTracer(tracerOpts)
 
 	// Set up a connection to the server.

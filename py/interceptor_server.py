@@ -3,11 +3,16 @@
 # a PR for https://github.com/grpc/grpc/issues/8767
 
 import grpc
+import collections
+
+
+UnaryServerInfo = collections.namedtuple('UnaryServerInfo', 'full_method')
 
 
 class InterceptorRpcMethodHandler(grpc.RpcMethodHandler):
-    def __init__(self, rpc_method_handler, interceptor):
+    def __init__(self, rpc_method_handler, method, interceptor):
         self.rpc_method_handler = rpc_method_handler
+        self.method = method
         self.interceptor = interceptor
 
     @property
@@ -29,10 +34,13 @@ class InterceptorRpcMethodHandler(grpc.RpcMethodHandler):
     @property
     def unary_unary(self):
         def adaptation(request, servicer_context):
-            def invoker(request, servicer_context):
+            def handler(request):
                 return self.rpc_method_handler.unary_unary(request,
                                                            servicer_context)
-            return self.interceptor(request, servicer_context, invoker)
+            return self.interceptor(request,
+                                    servicer_context.invocation_metadata(),
+                                    UnaryServerInfo(self.method),
+                                    handler)
         return adaptation
 
     @property
@@ -53,10 +61,12 @@ class InterceptorGenericRpcHandler(grpc.GenericRpcHandler):
         self.generic_rpc_handler = generic_rpc_handler
         self.interceptor = interceptor
 
-    def service(self, *args, **kwargs):
-        result = self.generic_rpc_handler.service(*args, **kwargs)
+    def service(self, handler_call_details):
+        result = self.generic_rpc_handler.service(handler_call_details)
         if result:
-            result = InterceptorRpcMethodHandler(result, self.interceptor)
+            result = InterceptorRpcMethodHandler(result,
+                                                 handler_call_details.method,
+                                                 self.interceptor)
         return result
 
 
