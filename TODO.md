@@ -1,8 +1,9 @@
 * **Add a tracer interceptor for synchronous calls on the server-side.**
 
-* **Add the ability to customize the method of obtaining a parent span in client-side interceptors.**
+* **Add the ability to customize the method of obtaining a parent span in the
+  client-side tracer interceptor.**
 
-* **Redesign interceptor interface to support asynchronous and batch RPC calls.**
+* **Redesign the interceptor interface to support asynchronous and batch RPC calls.**
 An interceptor interface like
 ```python
   def __call__(self, method, request, metadata, invoker):
