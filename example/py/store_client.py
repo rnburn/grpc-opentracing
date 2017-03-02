@@ -6,7 +6,7 @@ import sys
 
 import store_pb2
 from tracer_interceptor import OpenTracingClientInterceptor
-from interceptor_channel import InterceptorChannel
+from grpcext import intercept_channel
 import lightstep
 import argparse
 
@@ -23,7 +23,7 @@ def run():
                               access_token=args.access_token)
     tracer_interceptor = OpenTracingClientInterceptor(tracer)
     channel = grpc.insecure_channel('localhost:50051')
-    channel = InterceptorChannel(channel, tracer_interceptor)
+    channel = intercept_channel(channel, tracer_interceptor)
     stub = store_pb2.StoreStub(channel)
     response = stub.GetQuantity(store_pb2.QuantityRequest(item_id=51))
     print('Quantity: ' + str(response.quantity))

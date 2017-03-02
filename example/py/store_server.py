@@ -7,7 +7,7 @@ import grpc
 
 import store_pb2
 from tracer_interceptor import OpenTracingServerInterceptor
-from interceptor_server import InterceptorServer
+from grpcext import intercept_server
 import lightstep
 import argparse
 
@@ -32,7 +32,7 @@ def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     tracer_interceptor = OpenTracingServerInterceptor(tracer)
-    server = InterceptorServer(server, tracer_interceptor)
+    server = intercept_server(server, tracer_interceptor)
 
     store_pb2.add_StoreServicer_to_server(Store(), server)
     server.add_insecure_port('[::]:50051')
