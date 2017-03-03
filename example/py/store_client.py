@@ -16,6 +16,9 @@ def run():
     parser.add_argument('--access_token', help='LightStep Access Token')
     parser.add_argument('--call_async', action='store_true',
                         help='call the service asynchronously')
+    parser.add_argument(
+        '--log_payloads', action='store_true',
+        help='log request/response objects to open-tracing spans')
     args = parser.parse_args()
     if not args.access_token:
         print('You must specify access_token')
@@ -23,7 +26,9 @@ def run():
 
     tracer = lightstep.Tracer(component_name='python.store-client',
                               access_token=args.access_token)
-    tracer_interceptor = open_tracing_client_interceptor(tracer)
+    tracer_interceptor = open_tracing_client_interceptor(
+                                                tracer, 
+                                                log_payloads=args.log_payloads)
     channel = grpc.insecure_channel('localhost:50051')
     channel = intercept_channel(channel, tracer_interceptor)
     stub = store_pb2.StoreStub(channel)

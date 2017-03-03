@@ -25,6 +25,9 @@ class Store(store_pb2.StoreServicer):
 def serve():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access_token', help='LightStep Access Token')
+    parser.add_argument(
+        '--log_payloads', action='store_true',
+        help='log request/response objects to open-tracing spans')
     args = parser.parse_args()
     if not args.access_token:
         print('You must specify access_token')
@@ -34,7 +37,9 @@ def serve():
                               access_token=args.access_token)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
-    tracer_interceptor = open_tracing_server_interceptor(tracer)
+    tracer_interceptor = open_tracing_server_interceptor(
+                              tracer,
+                              log_payloads=args.log_payloads)
     server = intercept_server(server, tracer_interceptor)
 
     store_pb2.add_StoreServicer_to_server(Store(), server)
