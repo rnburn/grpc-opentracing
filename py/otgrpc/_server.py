@@ -17,9 +17,9 @@ def _start_server_span(tracer, metadata, method):
 
 class OpenTracingServerInterceptor(object):
     def __init__(self, tracer):
-        self.tracer = tracer
+        self._tracer = tracer
 
     def __call__(self, request, metadata, server_info, handler):
-        with _start_server_span(self.tracer, metadata,
+        with _start_server_span(self._tracer, metadata,
                                 server_info.full_method):
             return handler(request)
