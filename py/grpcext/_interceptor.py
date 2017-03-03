@@ -17,13 +17,23 @@ class _InterceptorUnaryUnaryMultiCallable(grpc.UnaryUnaryMultiCallable):
     def __call__(self, request, timeout=None, metadata=None, credentials=None):
         def invoker(request, metadata):
             return self._base_callable(request, timeout, metadata, credentials)
-        return self._interceptor(self._method, request, metadata, invoker)
+        return self._interceptor.intercept_unary(self._method, request,
+                                                 metadata, invoker)
 
-    def with_call(self, *args, **kwargs):
-        self._base_callable.with_call(*args, **kwargs)
+    def with_call(self, request, timeout=None, metadata=None,
+                  credentials=None):
+        def invoker(request, metadata):
+            return self._base_callable.with_call(request, timeout, metadata,
+                                                 credentials)
+        return self._interceptor.intercept_unary(self._method, request,
+                                                 metadata, invoker)
 
-    def future(self, *args, **kwargs):
-        self._base_callable.future(*args, **kwargs)
+    def future(self, request, timeout=None, metadata=None, credentials=None):
+        def invoker(request, metadata):
+            return self._base_callable.future(request, timeout, metadata,
+                                              credentials)
+        return self._interceptor.intercept_unary(self._method, request,
+                                                 metadata, invoker)
 
 
 class _InterceptorUnaryStreamMultiCallable(grpc.UnaryStreamMultiCallable):
@@ -104,10 +114,11 @@ class _InterceptorRpcMethodHandler(grpc.RpcMethodHandler):
             def handler(request):
                 return self._rpc_method_handler.unary_unary(request,
                                                             servicer_context)
-            return self._interceptor(request,
-                                     servicer_context.invocation_metadata(),
-                                     _UnaryServerInfo(self._method),
-                                     handler)
+            return self._interceptor.intercept_unary(
+                                       request,
+                                       servicer_context.invocation_metadata(),
+                                       _UnaryServerInfo(self._method),
+                                       handler)
         return adaptation
 
     @property

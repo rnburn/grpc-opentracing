@@ -14,6 +14,8 @@ import argparse
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access_token', help='LightStep Access Token')
+    parser.add_argument('--call_async', action='store_true',
+                        help='call the service asynchronously')
     args = parser.parse_args()
     if not args.access_token:
         print('You must specify access_token')
@@ -25,7 +27,13 @@ def run():
     channel = grpc.insecure_channel('localhost:50051')
     channel = intercept_channel(channel, tracer_interceptor)
     stub = store_pb2.StoreStub(channel)
-    response = stub.GetQuantity(store_pb2.QuantityRequest(item_id=51))
+    request = store_pb2.QuantityRequest(item_id=51)
+    response = None
+    if args.call_async:
+        response_future = stub.GetQuantity.future(request)
+        response = response_future.result()
+    else:
+        response = stub.GetQuantity(request)
     print('Quantity: ' + str(response.quantity))
 
     tracer.flush()
