@@ -27,6 +27,7 @@ def run():
     channel = grpc.insecure_channel('localhost:50051')
     channel = intercept_channel(channel, tracer_interceptor)
     stub = store_pb2.StoreStub(channel)
+
     request = store_pb2.QuantityRequest(item_id=51)
     response = None
     if args.call_async:
@@ -35,6 +36,10 @@ def run():
     else:
         response = stub.GetQuantity(request)
     print('Quantity: ' + str(response.quantity))
+
+    requests = [store_pb2.Item(item_id=21), store_pb2.Item(item_id=33)]
+    response = stub.StocksItems(iter(requests))
+    print('Stocks Items: ' + str(response.value))
 
     tracer.flush()
 

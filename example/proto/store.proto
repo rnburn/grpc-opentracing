@@ -8,6 +8,15 @@ package store;
 
 service Store {
   rpc GetQuantity(QuantityRequest) returns (QuantityResponse) {}
+  rpc StocksItems(stream Item) returns (Bool) {}
+}
+
+message Item {
+  int32 item_id = 1;
+}
+
+message Bool {
+  bool value = 1;
 }
 
 message QuantityRequest {

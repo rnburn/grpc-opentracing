@@ -62,4 +62,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
             return response
 
     def intercept_stream(self, metadata, client_info, invoker):
-        return invoker(metadata)
+        print 'before stream interception'
+        result = invoker(metadata)
+        print 'after stream interception'
+        return result

@@ -19,11 +19,21 @@ class StoreStub(object):
         request_serializer=store__pb2.QuantityRequest.SerializeToString,
         response_deserializer=store__pb2.QuantityResponse.FromString,
         )
+    self.StocksItems = channel.stream_unary(
+        '/store.Store/StocksItems',
+        request_serializer=store__pb2.Item.SerializeToString,
+        response_deserializer=store__pb2.Bool.FromString,
+        )
 
 
 class StoreServicer(object):
 
   def GetQuantity(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def StocksItems(self, request_iterator, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
@@ -35,6 +45,11 @@ def add_StoreServicer_to_server(servicer, server):
           servicer.GetQuantity,
           request_deserializer=store__pb2.QuantityRequest.FromString,
           response_serializer=store__pb2.QuantityResponse.SerializeToString,
+      ),
+      'StocksItems': grpc.stream_unary_rpc_method_handler(
+          servicer.StocksItems,
+          request_deserializer=store__pb2.Item.FromString,
+          response_serializer=store__pb2.Bool.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(

@@ -23,6 +23,7 @@ class UnaryClientInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling invoker(request, metadata).
         """
+        raise NotImplementedError()
 
 
 class StreamClientInfo(six.with_metaclass(abc.ABCMeta)):
@@ -57,6 +58,7 @@ class StreamClientInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling invoker(metadata).
         """
+        raise NotImplementedError()
 
 
 class UnaryServerInfo(six.with_metaclass(abc.ABCMeta)):
@@ -90,6 +92,7 @@ class UnaryServerInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling handler(request).
         """
+        raise NotImplementedError()
 
 
 # TODO: support multiple interceptor arguments

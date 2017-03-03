@@ -18,6 +18,9 @@ class Store(store_pb2.StoreServicer):
     def GetQuantity(self, request, context):
         return store_pb2.QuantityResponse(quantity=301)
 
+    def StocksItems(self, request_iterator, context):
+        return store_pb2.Bool(value=True)
+
 
 def serve():
     parser = argparse.ArgumentParser()

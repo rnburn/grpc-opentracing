@@ -19,11 +19,73 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='store.proto',
   package='store',
   syntax='proto3',
-  serialized_pb=_b('\n\x0bstore.proto\x12\x05store\"\"\n\x0fQuantityRequest\x12\x0f\n\x07item_id\x18\x01 \x01(\x05\"$\n\x10QuantityResponse\x12\x10\n\x08quantity\x18\x01 \x01(\x05\x32I\n\x05Store\x12@\n\x0bGetQuantity\x12\x16.store.QuantityRequest\x1a\x17.store.QuantityResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\x0bstore.proto\x12\x05store\"\x17\n\x04Item\x12\x0f\n\x07item_id\x18\x01 \x01(\x05\"\x15\n\x04\x42ool\x12\r\n\x05value\x18\x01 \x01(\x08\"\"\n\x0fQuantityRequest\x12\x0f\n\x07item_id\x18\x01 \x01(\x05\"$\n\x10QuantityResponse\x12\x10\n\x08quantity\x18\x01 \x01(\x05\x32v\n\x05Store\x12@\n\x0bGetQuantity\x12\x16.store.QuantityRequest\x1a\x17.store.QuantityResponse\"\x00\x12+\n\x0bStocksItems\x12\x0b.store.Item\x1a\x0b.store.Bool\"\x00(\x01\x62\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+
+_ITEM = _descriptor.Descriptor(
+  name='Item',
+  full_name='store.Item',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='item_id', full_name='store.Item.item_id', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=22,
+  serialized_end=45,
+)
+
+
+_BOOL = _descriptor.Descriptor(
+  name='Bool',
+  full_name='store.Bool',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='value', full_name='store.Bool.value', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=47,
+  serialized_end=68,
+)
 
 
 _QUANTITYREQUEST = _descriptor.Descriptor(
@@ -52,8 +114,8 @@ _QUANTITYREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=22,
-  serialized_end=56,
+  serialized_start=70,
+  serialized_end=104,
 )
 
 
@@ -83,12 +145,28 @@ _QUANTITYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=58,
-  serialized_end=94,
+  serialized_start=106,
+  serialized_end=142,
 )
 
+DESCRIPTOR.message_types_by_name['Item'] = _ITEM
+DESCRIPTOR.message_types_by_name['Bool'] = _BOOL
 DESCRIPTOR.message_types_by_name['QuantityRequest'] = _QUANTITYREQUEST
 DESCRIPTOR.message_types_by_name['QuantityResponse'] = _QUANTITYRESPONSE
+
+Item = _reflection.GeneratedProtocolMessageType('Item', (_message.Message,), dict(
+  DESCRIPTOR = _ITEM,
+  __module__ = 'store_pb2'
+  # @@protoc_insertion_point(class_scope:store.Item)
+  ))
+_sym_db.RegisterMessage(Item)
+
+Bool = _reflection.GeneratedProtocolMessageType('Bool', (_message.Message,), dict(
+  DESCRIPTOR = _BOOL,
+  __module__ = 'store_pb2'
+  # @@protoc_insertion_point(class_scope:store.Bool)
+  ))
+_sym_db.RegisterMessage(Bool)
 
 QuantityRequest = _reflection.GeneratedProtocolMessageType('QuantityRequest', (_message.Message,), dict(
   DESCRIPTOR = _QUANTITYREQUEST,
@@ -128,11 +206,21 @@ try:
           request_serializer=QuantityRequest.SerializeToString,
           response_deserializer=QuantityResponse.FromString,
           )
+      self.StocksItems = channel.stream_unary(
+          '/store.Store/StocksItems',
+          request_serializer=Item.SerializeToString,
+          response_deserializer=Bool.FromString,
+          )
 
 
   class StoreServicer(object):
 
     def GetQuantity(self, request, context):
+      context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+      context.set_details('Method not implemented!')
+      raise NotImplementedError('Method not implemented!')
+
+    def StocksItems(self, request_iterator, context):
       context.set_code(grpc.StatusCode.UNIMPLEMENTED)
       context.set_details('Method not implemented!')
       raise NotImplementedError('Method not implemented!')
@@ -144,6 +232,11 @@ try:
             servicer.GetQuantity,
             request_deserializer=QuantityRequest.FromString,
             response_serializer=QuantityResponse.SerializeToString,
+        ),
+        'StocksItems': grpc.stream_unary_rpc_method_handler(
+            servicer.StocksItems,
+            request_deserializer=Item.FromString,
+            response_serializer=Bool.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -159,6 +252,8 @@ try:
     only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0."""
     def GetQuantity(self, request, context):
       context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
+    def StocksItems(self, request_iterator, context):
+      context.code(beta_interfaces.StatusCode.UNIMPLEMENTED)
 
 
   class BetaStoreStub(object):
@@ -170,6 +265,9 @@ try:
     def GetQuantity(self, request, timeout, metadata=None, with_call=False, protocol_options=None):
       raise NotImplementedError()
     GetQuantity.future = None
+    def StocksItems(self, request_iterator, timeout, metadata=None, with_call=False, protocol_options=None):
+      raise NotImplementedError()
+    StocksItems.future = None
 
 
   def beta_create_Store_server(servicer, pool=None, pool_size=None, default_timeout=None, maximum_timeout=None):
@@ -180,12 +278,15 @@ try:
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
     request_deserializers = {
       ('store.Store', 'GetQuantity'): QuantityRequest.FromString,
+      ('store.Store', 'StocksItems'): Item.FromString,
     }
     response_serializers = {
       ('store.Store', 'GetQuantity'): QuantityResponse.SerializeToString,
+      ('store.Store', 'StocksItems'): Bool.SerializeToString,
     }
     method_implementations = {
       ('store.Store', 'GetQuantity'): face_utilities.unary_unary_inline(servicer.GetQuantity),
+      ('store.Store', 'StocksItems'): face_utilities.stream_unary_inline(servicer.StocksItems),
     }
     server_options = beta_implementations.server_options(request_deserializers=request_deserializers, response_serializers=response_serializers, thread_pool=pool, thread_pool_size=pool_size, default_timeout=default_timeout, maximum_timeout=maximum_timeout)
     return beta_implementations.server(method_implementations, options=server_options)
@@ -199,12 +300,15 @@ try:
     generated only to ease transition from grpcio<0.15.0 to grpcio>=0.15.0"""
     request_serializers = {
       ('store.Store', 'GetQuantity'): QuantityRequest.SerializeToString,
+      ('store.Store', 'StocksItems'): Item.SerializeToString,
     }
     response_deserializers = {
       ('store.Store', 'GetQuantity'): QuantityResponse.FromString,
+      ('store.Store', 'StocksItems'): Bool.FromString,
     }
     cardinalities = {
       'GetQuantity': cardinality.Cardinality.UNARY_UNARY,
+      'StocksItems': cardinality.Cardinality.STREAM_UNARY,
     }
     stub_options = beta_implementations.stub_options(host=host, metadata_transformer=metadata_transformer, request_serializers=request_serializers, response_deserializers=response_deserializers, thread_pool=pool, thread_pool_size=pool_size)
     return beta_implementations.dynamic_stub(channel, 'store.Store', cardinalities, options=stub_options)

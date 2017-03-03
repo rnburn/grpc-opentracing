@@ -1,11 +1,11 @@
 import grpc
+import grpcext
 import collections
 
 
-class _UnaryServerInfo(
-    collections.namedtuple(
-        '_UnaryServerInfo', ('full_method',))):
-    pass
+_StreamClientInfo = collections.namedtuple('_StreamClientInfo',
+                                           ('full_method', 'is_client_stream',
+                                            'is_server_stream'))
 
 
 class _InterceptorUnaryUnaryMultiCallable(grpc.UnaryUnaryMultiCallable):
@@ -42,12 +42,37 @@ class _InterceptorUnaryStreamMultiCallable(grpc.UnaryStreamMultiCallable):
 
 
 class _InterceptorStreamUnaryMultiCallable(grpc.StreamUnaryMultiCallable):
+    def __init__(self, method, base_callable, interceptor):
+        self._base_callable = base_callable
+        self._interceptor = interceptor
+        self._client_info = _StreamClientInfo(method, True, False)
+
     def __call__(
       self, request_iterator, timeout=None, metadata=None, credentials=None):
-        pass
+        def invoker(metadata):
+            return self._base_callable(request_iterator, timeout, metadata,
+                                       credentials)
+        return self._interceptor.intercept_stream(metadata, self._client_info,
+                                                  invoker)
+
+    def with_call(
+      self, request_iterator, timeout=None, metadata=None, credentials=None):
+        def invoker(metadata):
+            return self._base_callable.with_call(request_iterator, timeout,
+                                                 metadata, credentials)
+        return self._interceptor.intercept_stream(metadata, self._client_info,
+                                                  invoker)
+
+    def future(
+      self, request_iterator, timeout=None, metadata=None, credentials=None):
+        def invoker(metadata):
+            return self._base_callable.future(request_iterator, timeout,
+                                              metadata, credentials)
+        return self._interceptor.intercept_stream(metadata, self._client_info,
+                                                  invoker)
 
 
-class StreamStreamMultiCallable(grpc.StreamStreamMultiCallable):
+class _IteratorStreamStreamMultiCallable(grpc.StreamStreamMultiCallable):
     def __call__(
       self, request_iterator, timeout=None, metadata=None, credentials=None):
         pass
@@ -68,14 +93,24 @@ class _InterceptorChannel(grpc.Channel):
       self, method, request_serializer=None, response_deserializer=None):
         base_callable = self._channel.unary_unary(
           method, request_serializer, response_deserializer)
-        return _InterceptorUnaryUnaryMultiCallable(
-            method, base_callable, self._interceptor)
+        if isinstance(self._interceptor, grpcext.UnaryClientInterceptor):
+            return _InterceptorUnaryUnaryMultiCallable(
+                method, base_callable, self._interceptor)
+        else:
+            return base_callable
 
     def unary_stream(self, *args, **kwargs):
         return self._channel.unary_stream(*args, **kwargs)
 
-    def stream_unary(self, *args, **kwargs):
-        return self._channel.stream_unary(*args, **kwargs)
+    def stream_unary(
+      self, method, request_serializer=None, response_deserializer=None):
+        base_callable = self._channel.stream_unary(
+          method, request_serializer, response_deserializer)
+        if isinstance(self._interceptor, grpcext.StreamClientInterceptor):
+            return _InterceptorStreamUnaryMultiCallable(
+                method, base_callable, self._interceptor)
+        else:
+            return base_callable
 
     def stream_stream(self, *args, **kwargs):
         return self._channel.stream_stream(*args, **kwargs)
@@ -84,6 +119,12 @@ class _InterceptorChannel(grpc.Channel):
 # TODO: support multiple interceptor arguments
 def intercept_channel(channel, interceptor):
     return _InterceptorChannel(channel, interceptor)
+
+
+class _UnaryServerInfo(
+    collections.namedtuple(
+        '_UnaryServerInfo', ('full_method',))):
+    pass
 
 
 class _InterceptorRpcMethodHandler(grpc.RpcMethodHandler):
@@ -110,6 +151,9 @@ class _InterceptorRpcMethodHandler(grpc.RpcMethodHandler):
 
     @property
     def unary_unary(self):
+        if not isinstance(self._interceptor, grpcext.UnaryServerInterceptor):
+            return self._rpc_method_handler.unary_unary
+
         def adaptation(request, servicer_context):
             def handler(request):
                 return self._rpc_method_handler.unary_unary(request,
