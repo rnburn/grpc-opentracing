@@ -58,7 +58,12 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                 raise
             # if the RPC is called asynchronously, don't log responses
             if self._log_payloads and not isinstance(response, grpc.Future):
-                span.log_kv({'response': response})
+                # when an RPC is called via the with_call method, it returns
+                # a tuple where the first element is the RPC message
+                if isinstance(response, tuple):
+                    span.log_kv({'response': response[0]})
+                else:
+                    span.log_kv({'response': response})
             return response
 
     def intercept_stream(self, metadata, client_info, invoker):
