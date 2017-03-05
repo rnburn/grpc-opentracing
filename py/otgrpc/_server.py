@@ -26,12 +26,13 @@ def _start_server_span(tracer, metadata, method):
     }
     span = tracer.start_span(operation_name=method, child_of=span_context,
                              tags=tags)
-    if error:
+    if error is not None:
         span.log_kv({'event': 'error', 'error.object': error})
     return span
 
 
-class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor):
+class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
+                                   grpcext.StreamServerInterceptor):
     def __init__(self, tracer, log_payloads):
         self._tracer = tracer
         self._log_payloads = log_payloads
@@ -52,3 +53,29 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor):
             if self._log_payloads:
                 span.log_kv({'response': response})
             return response
+
+    def _intercept_server_stream(self, metadata, server_info, handler):
+        with _start_server_span(self._tracer, metadata,
+                                server_info.full_method) as span:
+            try:
+                result = handler()
+                for response in result:
+                    yield response
+            except:
+                e = sys.exc_info()[0]
+                span.set_tag('error', True)
+                span.log_kv({'event': 'error', 'error.object': e})
+                raise
+
+    def intercept_stream(self, metadata, server_info, handler):
+        if server_info.is_server_stream:
+            return self._intercept_server_stream(metadata, server_info, handler)
+        with _start_server_span(self._tracer, metadata,
+                                server_info.full_method) as span:
+            try:
+                return handler()
+            except:
+                e = sys.exc_info()[0]
+                span.set_tag('error', True)
+                span.log_kv({'event': 'error', 'error.object': e})
+                raise

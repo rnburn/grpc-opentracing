@@ -61,12 +61,28 @@ class StreamClientInterceptor(six.with_metaclass(abc.ABCMeta)):
         raise NotImplementedError()
 
 
+# TODO: support multiple interceptor arguments
+def intercept_channel(channel, interceptor):
+    from grpcext import _interceptor
+    return _interceptor.intercept_channel(channel, interceptor)
+
+
 class UnaryServerInfo(six.with_metaclass(abc.ABCMeta)):
     """Consists of various information about a unary RPC on the server-side.
 
     Attributes:
       full_method: A string of the full RPC method, i.e.,
         /package.service/method.
+    """
+
+class StreamServerInfo(six.with_metaclass(abc.ABCMeta)):
+    """Consists of various information about a stream RPC on the server-side.
+
+    Attributes:
+      full_method: A string of the full RPC method, i.e.,
+        /package.service/method.
+      is_client_stream: Indicates whether the RPC is client-streaming.
+      is_server_stream: Indicates whether the RPC is server-streaming.
     """
 
 
@@ -95,10 +111,28 @@ class UnaryServerInterceptor(six.with_metaclass(abc.ABCMeta)):
         raise NotImplementedError()
 
 
-# TODO: support multiple interceptor arguments
-def intercept_channel(channel, interceptor):
-    from grpcext import _interceptor
-    return _interceptor.intercept_channel(channel, interceptor)
+class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
+    """Invokes custom code when a server-side, unary-stream, stream-unary, or
+      stream-stream, RPC method is called.
+    """
+
+    @abc.abstractmethod
+    def intercept_stream(self, metadata, server_info, handler):
+        """A function to be called when a server-side, unary-stream,
+          stream-unary, or stream-stream RPC method is invoked.
+
+        Args:
+          metadata: Optional :term:`metadata` transmitted from the client-side
+            of the RPC.
+          server_info: A StreamServerInfo containing various information about
+            the RPC.
+          handler:  The handler to complete the RPC on the server. It is the
+            interceptor's responsibility to call it.
+
+        Returns:
+          The result from calling handler().
+        """
+        raise NotImplementedError()
 
 
 # TODO: support multiple interceptor arguments

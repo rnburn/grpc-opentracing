@@ -46,28 +46,49 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
     def intercept_unary(self, method, request, metadata, invoker):
         with self.start_span(method) as span:
             metadata = _inject_span_context(self._tracer, span, metadata)
-            response = None
             if self._log_payloads:
                 span.log_kv({'request': request})
             try:
-                response = invoker(request, metadata)
+                result = invoker(request, metadata)
             except:
                 e = sys.exc_info()[0]
                 span.set_tag('error', True)
                 span.log_kv({'event': 'error', 'error.object': e})
                 raise
             # if the RPC is called asynchronously, don't log responses
-            if self._log_payloads and not isinstance(response, grpc.Future):
-                # when an RPC is called via the with_call method, it returns
-                # a tuple where the first element is the RPC message
-                if isinstance(response, tuple):
-                    span.log_kv({'response': response[0]})
-                else:
-                    span.log_kv({'response': response})
-            return response
+            if self._log_payloads and not isinstance(result, grpc.Future):
+                response = result
+                # handle the case when the RPC is initiated via the with_call
+                # method and the result is a tuple with the first element as the
+                # response
+                # http://www.grpc.io/grpc/python/grpc.html#grpc.UnaryUnaryMultiCallable.with_call
+                if isinstance(result, tuple):
+                    response = result[0]
+                span.log_kv({'response': response})
+            return result
+
+    def _intercept_server_stream(self, metadata, client_info, invoker):
+        with self.start_span(client_info.full_method) as span:
+            metadata = _inject_span_context(self._tracer, span, metadata)
+            try:
+                result = invoker(metadata)
+                for response in result:
+                    yield response
+            except:
+                e = sys.exc_info()[0]
+                span.set_tag('error', True)
+                span.log_kv({'event': 'error', 'error.object': e})
+                raise
 
     def intercept_stream(self, metadata, client_info, invoker):
-        print 'before stream interception'
-        result = invoker(metadata)
-        print 'after stream interception'
-        return result
+        if client_info.is_server_stream:
+            return self._intercept_server_stream(metadata, client_info, invoker)
+        with self.start_span(client_info.full_method) as span:
+            metadata = _inject_span_context(self._tracer, span, metadata)
+            try:
+                return invoker(metadata)
+            except:
+                e = sys.exc_info()[0]
+                span.set_tag('error', True)
+                span.log_kv({'event': 'error', 'error.object': e})
+                raise
