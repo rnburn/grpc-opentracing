@@ -33,73 +33,66 @@ def execute_command(rpc_executer, command, command_arguments):
             return
         command_arguments = command_arguments[2:]
     if command == 'stock_item':
-        method = 'AddItem'
         requests = [store_pb2.AddItemRequest(name=name) 
                         for name in command_arguments]
         if len(requests) != 1:
             print('must input a single element')
             return
         request = requests[0]
-        rpc_executer(method, request, via)
+        rpc_executer('AddItem', request, via)
     elif command == 'stock_items':
-        method = 'AddItems'
         requests = [store_pb2.AddItemRequest(name=name) 
                         for name in command_arguments]
         if not requests:
             print('must input at least one item')
             return
-        rpc_executer(method, iter(requests), via)
+        rpc_executer('AddItems', iter(requests), via)
     elif command == 'sell_item':
-        method = 'RemoveItem'
         requests = [store_pb2.RemoveItemRequest(name=name)
                         for name in command_arguments]
         if len(requests) != 1:
             print('must input a single element')
             return
         request = requests[0]
-        response = rpc_executer(method, request, via)
+        response = rpc_executer('RemoveItem', request, via)
         if not response.was_successful:
             print('unable to sell')
     elif command == 'sell_items':
-        method = 'RemoveItems'
         requests = [store_pb2.RemoveItemRequest(name=name)
                         for name in command_arguments]
         if not requests:
             print('must input at least one item')
             return
-        response = rpc_executer(method, iter(requests), via)
+        response = rpc_executer('RemoveItems', iter(requests), via)
         if not response.was_successful:
             print('unable to sell')
     elif command == 'inventory':
         if via != 'functor':
             print('inventory can only be called via functor')
             return
-        method = 'ListInventory'
         request = store_pb2.Empty()
-        result = rpc_executer(method, request, via)
+        result = rpc_executer('ListInventory', request, via)
         for query in result:
             print(query.name, '\t', query.count)
     elif command == 'query_item':
-        method = 'QueryQuantity'
         requests = [store_pb2.QueryItemRequest(name=name) 
                         for name in command_arguments]
         if len(requests) != 1:
             print('must input a single element')
             return
         request = requests[0]
-        query = rpc_executer(method, request, via)
+        query = rpc_executer('QueryQuantity', request, via)
         print(query.name, '\t', query.count)
     elif command == 'query_items':
         if via != 'functor':
             print('query_items can only be called via functor')
             return
-        method = 'QueryQuantities'
         requests = [store_pb2.QueryItemRequest(name=name) 
                         for name in command_arguments]
         if not requests:
             print('must input at least one item')
             return
-        result = rpc_executer(method, iter(requests), via)
+        result = rpc_executer('QueryQuantities', iter(requests), via)
         for query in result:
             print(query.name, '\t', query.count)
     else:
