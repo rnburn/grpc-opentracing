@@ -24,11 +24,111 @@ class RpcExecuter(object):
         else:
             return getattr(self._stub, method)(request_or_iter)
 
+def execute_command(rpc_executer, command, command_arguments):
+    via = 'functor'
+    if len(command_arguments) > 1 and command_arguments[0] == '--via':
+        via = command_arguments[1]
+        if via not in ('functor', 'with_call', 'future'):
+            print('invalid --via option')
+            return
+        command_arguments = command_arguments[2:]
+    if command == 'stock_item':
+        method = 'AddItem'
+        requests = [store_pb2.AddItemRequest(name=name) 
+                        for name in command_arguments]
+        if len(requests) != 1:
+            print('must input a single element')
+            return
+        request = requests[0]
+        rpc_executer(method, request, via)
+    elif command == 'stock_items':
+        method = 'AddItems'
+        requests = [store_pb2.AddItemRequest(name=name) 
+                        for name in command_arguments]
+        if not requests:
+            print('must input at least one item')
+            return
+        rpc_executer(method, iter(requests), via)
+    elif command == 'sell_item':
+        method = 'RemoveItem'
+        requests = [store_pb2.RemoveItemRequest(name=name)
+                        for name in command_arguments]
+        if len(requests) != 1:
+            print('must input a single element')
+            return
+        request = requests[0]
+        response = rpc_executer(method, request, via)
+        if not response.was_successful:
+            print('unable to sell')
+    elif command == 'sell_items':
+        method = 'RemoveItems'
+        requests = [store_pb2.RemoveItemRequest(name=name)
+                        for name in command_arguments]
+        if not requests:
+            print('must input at least one item')
+            return
+        response = rpc_executer(method, iter(requests), via)
+        if not response.was_successful:
+            print('unable to sell')
+    elif command == 'inventory':
+        if via != 'functor':
+            print('inventory can only be called via functor')
+            return
+        method = 'ListInventory'
+        request = store_pb2.Empty()
+        result = rpc_executer(method, request, via)
+        for query in result:
+            print(query.name, '\t', query.count)
+    elif command == 'query_item':
+        method = 'QueryQuantity'
+        requests = [store_pb2.QueryItemRequest(name=name) 
+                        for name in command_arguments]
+        if len(requests) != 1:
+            print('must input a single element')
+            return
+        request = requests[0]
+        query = rpc_executer(method, request, via)
+        print(query.name, '\t', query.count)
+    elif command == 'query_items':
+        if via != 'functor':
+            print('query_items can only be called via functor')
+            return
+        method = 'QueryQuantities'
+        requests = [store_pb2.QueryItemRequest(name=name) 
+                        for name in command_arguments]
+        if not requests:
+            print('must input at least one item')
+            return
+        result = rpc_executer(method, iter(requests), via)
+        for query in result:
+            print(query.name, '\t', query.count)
+    else:
+        print('Unknown command: "%s"' % command)
+
+instructions = \
+"""Enter commands to interact with the store service:
+
+    stock_item     Stock a single item.
+    stock_items    Stock one or more items.
+    sell_item      Sell a single item.
+    sell_items     Sell one or more items.
+    inventory      List the store's inventory.
+    query_item     Query the inventory for a single item.
+    query_items    Query the inventory for one or more items.
+
+You can also optionally provide a --via argument to instruct the RPC to be
+initiated via either the functor, with_call, or future method.
+
+Example:
+    > stock_item apple
+    > stock_items --via future apple milk
+    > inventory
+    apple   2
+    milk    1
+"""
+
 def read_and_execute(rpc_executer):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--via', choices=('functor', 'with_call', 'future'),
-                        default='functor')
-    parser.add_argument('command_arguments', nargs='*')
+    print(instructions)
     while True:
         try:
             line = raw_input('> ')
@@ -36,62 +136,8 @@ def read_and_execute(rpc_executer):
             if not components:
                 continue
             command = components[0]
-            arguments = parser.parse_args(components[1:])
-            command_arguments = arguments.command_arguments
-            if command == 'stock':
-                method = 'AddItem'
-                requests = [store_pb2.AddItemRequest(name=name) 
-                                for name in command_arguments]
-                if not requests:
-                    print('must input at least one item')
-                    continue
-                request_or_iter = requests[0]
-                if len(requests) > 1:
-                    method = 'AddItems'
-                    request_or_iter = iter(requests)
-                rpc_executer(method, request_or_iter, arguments.via)
-            elif command == 'sell':
-                method = 'RemoveItem'
-                requests = [store_pb2.RemoveItemRequest(name=name)
-                                for name in command_arguments]
-                if not requests:
-                    print('must input at least one item')
-                    continue
-                request_or_iter = requests[0]
-                if len(requests) > 1:
-                    method = 'RemoveItems'
-                    request_or_iter = iter(requests)
-                response = rpc_executer(method, request_or_iter, arguments.via)
-                if not response.was_successful:
-                    print('unable to sell')
-            elif command == 'list':
-                method = 'ListInventory'
-                request = store_pb2.Empty()
-                response = list(rpc_executer(method, request, arguments.via))
-                for query in response:
-                    print(query.name, ': ', query.count)
-            elif command == 'query':
-                method = 'QueryQuantity'
-                requests = [store_pb2.QueryItemRequest(name=name) 
-                                for name in command_arguments]
-                if not requests:
-                    print('must input at least one item')
-                    continue
-                request_or_iter = requests[0]
-                if len(requests) > 1:
-                    method = 'QueryQuantities'
-                    request_or_iter = iter(requests)
-                response = rpc_executer(method, request_or_iter, arguments.via)
-                if isinstance(response, collections.Iterable):
-                    response = list(response)
-                else:
-                    response = [response]
-                for query in response:
-                    print(query.name, '\t', query.count)
-            else:
-                print('Unknown command: "%s"' % command)
-            # print(command)
-            # print(arguments.command_arguments)
+            command_arguments = components[1:]
+            execute_command(rpc_executer, command, command_arguments)
         except EOFError:
             break
 
@@ -99,8 +145,6 @@ def read_and_execute(rpc_executer):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access_token', help='LightStep Access Token')
-    parser.add_argument('--call_async', action='store_true',
-                        help='call the service asynchronously')
     parser.add_argument(
         '--log_payloads', action='store_true',
         help='log request/response objects to open-tracing spans')
@@ -119,18 +163,6 @@ def run():
     stub = store_pb2.StoreStub(channel)
 
     read_and_execute(RpcExecuter(stub))
-    # request = store_pb2.QuantityRequest(item_id=51)
-    # response = None
-    # if args.call_async:
-    #     response_future = stub.GetQuantity.future(request)
-    #     response = response_future.result()
-    # else:
-    #     response = stub.GetQuantity(request)
-    # print('Quantity: ' + str(response.quantity))
-
-    # requests = [store_pb2.Item(item_id=21), store_pb2.Item(item_id=33)]
-    # response = stub.StocksItems(iter(requests))
-    # print('Stocks Items: ' + str(response.value))
 
     tracer.flush()
 
