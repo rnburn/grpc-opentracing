@@ -10,16 +10,54 @@ from grpcext import intercept_server
 from otgrpc import open_tracing_server_interceptor
 import lightstep
 import argparse
+from collections import defaultdict
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
 class Store(store_pb2.StoreServicer):
-    def GetQuantity(self, request, context):
-        return store_pb2.QuantityResponse(quantity=301)
+    def __init__(self):
+        self._inventory = defaultdict(int)
 
-    def StocksItems(self, request_iterator, context):
-        return store_pb2.Bool(value=True)
+    def AddItem(self, request, context):
+        self._inventory[request.name] += 1
+        return store_pb2.Empty()
+
+    def AddItems(self, request_iter, context):
+        for request in request_iter:
+            self._inventory[request.name] += 1
+        return store_pb2.Empty()
+
+    def RemoveItem(self, request, context):
+        new_quantity = self._inventory[request.name]-1
+        if new_quantity < 0:
+            return store_pb2.RemoveItemResponse(was_successful=False)
+        self._inventory[request.name] = new_quantity
+        return store_pb2.RemoveItemResponse(was_successful=True)
+
+    def RemoveItems(self, request_iter, context):
+        response = store_pb2.RemoveItemResponse(was_successful=True)
+        for request in request_iter:
+            response = self.RemoveItem(request, context)
+            if not response.was_successful:
+                break
+        return response
+
+    def ListInventory(self, request, context):
+        for name, count in self._inventory.iteritems():
+            if not count:
+                continue
+            else:
+                yield store_pb2.QuantityResponse(name=name, count=count)
+
+    def QueryQuantity(self, request, context):
+        count = self._inventory[request.name]
+        return store_pb2.QuantityResponse(name=request.name, count=count)
+
+    def QueryQuantities(self, request_iter, context):
+        for request in request_iter:
+            count = self._inventory[request.name]
+            yield store_pb2.QuantityResponse(name=request.name, count=count)
 
 
 def serve():

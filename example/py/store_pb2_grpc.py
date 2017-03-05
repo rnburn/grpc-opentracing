@@ -14,26 +14,76 @@ class StoreStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.GetQuantity = channel.unary_unary(
-        '/store.Store/GetQuantity',
-        request_serializer=store__pb2.QuantityRequest.SerializeToString,
+    self.AddItem = channel.unary_unary(
+        '/store.Store/AddItem',
+        request_serializer=store__pb2.AddItemRequest.SerializeToString,
+        response_deserializer=store__pb2.Empty.FromString,
+        )
+    self.AddItems = channel.stream_unary(
+        '/store.Store/AddItems',
+        request_serializer=store__pb2.AddItemRequest.SerializeToString,
+        response_deserializer=store__pb2.Empty.FromString,
+        )
+    self.RemoveItem = channel.unary_unary(
+        '/store.Store/RemoveItem',
+        request_serializer=store__pb2.RemoveItemRequest.SerializeToString,
+        response_deserializer=store__pb2.RemoveItemResponse.FromString,
+        )
+    self.RemoveItems = channel.stream_unary(
+        '/store.Store/RemoveItems',
+        request_serializer=store__pb2.RemoveItemRequest.SerializeToString,
+        response_deserializer=store__pb2.RemoveItemResponse.FromString,
+        )
+    self.ListInventory = channel.unary_stream(
+        '/store.Store/ListInventory',
+        request_serializer=store__pb2.Empty.SerializeToString,
         response_deserializer=store__pb2.QuantityResponse.FromString,
         )
-    self.StocksItems = channel.stream_unary(
-        '/store.Store/StocksItems',
-        request_serializer=store__pb2.Item.SerializeToString,
-        response_deserializer=store__pb2.Bool.FromString,
+    self.QueryQuantity = channel.unary_unary(
+        '/store.Store/QueryQuantity',
+        request_serializer=store__pb2.QueryItemRequest.SerializeToString,
+        response_deserializer=store__pb2.QuantityResponse.FromString,
+        )
+    self.QueryQuantities = channel.stream_stream(
+        '/store.Store/QueryQuantities',
+        request_serializer=store__pb2.QueryItemRequest.SerializeToString,
+        response_deserializer=store__pb2.QuantityResponse.FromString,
         )
 
 
 class StoreServicer(object):
 
-  def GetQuantity(self, request, context):
+  def AddItem(self, request, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
-  def StocksItems(self, request_iterator, context):
+  def AddItems(self, request_iterator, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def RemoveItem(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def RemoveItems(self, request_iterator, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def ListInventory(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def QueryQuantity(self, request, context):
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def QueryQuantities(self, request_iterator, context):
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
@@ -41,15 +91,40 @@ class StoreServicer(object):
 
 def add_StoreServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'GetQuantity': grpc.unary_unary_rpc_method_handler(
-          servicer.GetQuantity,
-          request_deserializer=store__pb2.QuantityRequest.FromString,
+      'AddItem': grpc.unary_unary_rpc_method_handler(
+          servicer.AddItem,
+          request_deserializer=store__pb2.AddItemRequest.FromString,
+          response_serializer=store__pb2.Empty.SerializeToString,
+      ),
+      'AddItems': grpc.stream_unary_rpc_method_handler(
+          servicer.AddItems,
+          request_deserializer=store__pb2.AddItemRequest.FromString,
+          response_serializer=store__pb2.Empty.SerializeToString,
+      ),
+      'RemoveItem': grpc.unary_unary_rpc_method_handler(
+          servicer.RemoveItem,
+          request_deserializer=store__pb2.RemoveItemRequest.FromString,
+          response_serializer=store__pb2.RemoveItemResponse.SerializeToString,
+      ),
+      'RemoveItems': grpc.stream_unary_rpc_method_handler(
+          servicer.RemoveItems,
+          request_deserializer=store__pb2.RemoveItemRequest.FromString,
+          response_serializer=store__pb2.RemoveItemResponse.SerializeToString,
+      ),
+      'ListInventory': grpc.unary_stream_rpc_method_handler(
+          servicer.ListInventory,
+          request_deserializer=store__pb2.Empty.FromString,
           response_serializer=store__pb2.QuantityResponse.SerializeToString,
       ),
-      'StocksItems': grpc.stream_unary_rpc_method_handler(
-          servicer.StocksItems,
-          request_deserializer=store__pb2.Item.FromString,
-          response_serializer=store__pb2.Bool.SerializeToString,
+      'QueryQuantity': grpc.unary_unary_rpc_method_handler(
+          servicer.QueryQuantity,
+          request_deserializer=store__pb2.QueryItemRequest.FromString,
+          response_serializer=store__pb2.QuantityResponse.SerializeToString,
+      ),
+      'QueryQuantities': grpc.stream_stream_rpc_method_handler(
+          servicer.QueryQuantities,
+          request_deserializer=store__pb2.QueryItemRequest.FromString,
+          response_serializer=store__pb2.QuantityResponse.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
