@@ -54,6 +54,9 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
                 span.log_kv({'response': response})
             return response
 
+    # For RPCs that stream responses, the result can be a generator. To record
+    # the span across the generated responses and detect any errors, we wrap the
+    # result in a new generator that yields the response values.
     def _intercept_server_stream(self, metadata, server_info, handler):
         with _start_server_span(self._tracer, metadata,
                                 server_info.full_method) as span:
