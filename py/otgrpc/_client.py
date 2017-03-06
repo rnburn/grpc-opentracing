@@ -27,7 +27,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
         self._active_span_source = active_span_source
         self._log_payloads = log_payloads
 
-    def start_span(self, method):
+    def _start_span(self, method):
         active_span_context = None
         if self._active_span_source:
             active_span_context = \
@@ -44,7 +44,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                                        tags=tags)
 
     def intercept_unary(self, method, request, metadata, invoker):
-        with self.start_span(method) as span:
+        with self._start_span(method) as span:
             metadata = _inject_span_context(self._tracer, span, metadata)
             if self._log_payloads:
                 span.log_kv({'request': request})
@@ -71,7 +71,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
     # the span across the generated responses and detect any errors, we wrap the
     # result in a new generator that yields the response values.
     def _intercept_server_stream(self, metadata, client_info, invoker):
-        with self.start_span(client_info.full_method) as span:
+        with self._start_span(client_info.full_method) as span:
             metadata = _inject_span_context(self._tracer, span, metadata)
             try:
                 result = invoker(metadata)
@@ -86,7 +86,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
     def intercept_stream(self, metadata, client_info, invoker):
         if client_info.is_server_stream:
             return self._intercept_server_stream(metadata, client_info, invoker)
-        with self.start_span(client_info.full_method) as span:
+        with self._start_span(client_info.full_method) as span:
             metadata = _inject_span_context(self._tracer, span, metadata)
             try:
                 return invoker(metadata)
