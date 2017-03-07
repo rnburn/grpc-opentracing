@@ -192,9 +192,16 @@ class _InterceptorChannel(grpc.Channel):
       return base_callable
 
 
-# TODO: support multiple interceptor arguments
-def intercept_channel(channel, interceptor):
-  return _InterceptorChannel(channel, interceptor)
+def intercept_channel(channel, *interceptors):
+  result = channel
+  for interceptor in interceptors:
+    if not isinstance(interceptor, grpcext.UnaryClientInterceptor) and \
+       not isinstance(interceptor, grpcext.StreamClientInterceptor):
+      raise TypeError('interceptor must be either a '
+                      'grpcext.UnaryClientInterceptor or a '
+                      'grpcext.StreamClientInterceptor')
+    result = _InterceptorChannel(result, interceptor)
+  return result
 
 
 class _UnaryServerInfo(
@@ -339,6 +346,13 @@ class _InterceptorServer(grpc.Server):
     self._server.stop(*args, **kwargs)
 
 
-# TODO: support multiple interceptor arguments
-def intercept_server(server, interceptor):
-  return _InterceptorServer(server, interceptor)
+def intercept_server(server, *interceptors):
+  result = server
+  for interceptor in interceptors:
+    if not isinstance(interceptor, grpcext.UnaryServerInterceptor) and \
+       not isinstance(interceptor, grpcext.StreamServerInterceptor):
+      raise TypeError('interceptor must be either a '
+                      'grpcext.UnaryServerInterceptor or a '
+                      'grpcext.StreamServerInterceptor')
+    result = _InterceptorServer(result, interceptor)
+  return result

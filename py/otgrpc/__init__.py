@@ -52,9 +52,5 @@ def open_tracing_server_interceptor(tracer, log_payloads=False):
 
 ###################################  __all__  #################################
 
-
-__all__ = (
-    'ActiveSpanSource',
-    'open_tracing_client_interceptor',
-    'open_tracing_server_interceptor',
-)
+__all__ = ('ActiveSpanSource', 'open_tracing_client_interceptor',
+           'open_tracing_server_interceptor',)

@@ -62,10 +62,24 @@ class StreamClientInterceptor(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-# TODO: support multiple interceptor arguments
-def intercept_channel(channel, interceptor):
+def intercept_channel(channel, *interceptors):
+  """Creates a new Channel that invokes the given interceptors if their
+    targeted RPC types are called.
+
+    Args:
+      channel: A Channel.
+      interceptors: Zero or more UnaryClientInterceptors or
+        StreamClientInterceptors
+
+    Returns:
+      A Channel.
+
+    Raises:
+      TypeError: If an interceptor derives from neither UnaryClientInterceptor
+        nor StreamClientInterceptor.
+  """
   from grpcext import _interceptor
-  return _interceptor.intercept_channel(channel, interceptor)
+  return _interceptor.intercept_channel(channel, *interceptors)
 
 
 class UnaryServerInfo(six.with_metaclass(abc.ABCMeta)):
@@ -137,23 +151,29 @@ class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
     raise NotImplementedError()
 
 
-# TODO: support multiple interceptor arguments
-def intercept_server(server, interceptor):
+def intercept_server(server, *interceptors):
+  """Creates a new Channel that invokes the given interceptors if their
+    targeted RPC types are called.
+
+    Args:
+      server: A Server.
+      interceptors: Zero or more UnaryServerInterceptors or
+        StreamServerInterceptors
+
+    Returns:
+      A Server.
+
+    Raises:
+      TypeError: If an interceptor derives from neither UnaryServerInterceptor
+        nor StreamServerInterceptor.
+  """
   from grpcext import _interceptor
-  return _interceptor.intercept_server(server, interceptor)
+  return _interceptor.intercept_server(server, *interceptors)
 
 
 ###################################  __all__  #################################
 
-
-__all__ = (
-    'UnaryClientInterceptor',
-    'StreamClientInfo',
-    'StreamClientInterceptor',
-    'UnaryServerInfo',
-    'StreamServerInfo',
-    'UnaryServerInterceptor',
-    'StreamServerInterceptor',
-    'intercept_channel',
-    'intercept_server',
-)
+__all__ = ('UnaryClientInterceptor', 'StreamClientInfo',
+           'StreamClientInterceptor', 'UnaryServerInfo', 'StreamServerInfo',
+           'UnaryServerInterceptor', 'StreamServerInterceptor',
+           'intercept_channel', 'intercept_server',)
