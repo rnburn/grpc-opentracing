@@ -3,6 +3,8 @@
 import sys
 import logging
 
+from six import iteritems
+
 import grpc
 import grpcext
 import opentracing
@@ -19,7 +21,7 @@ def _inject_span_context(tracer, span, metadata):
     span.log_kv({'event': 'error', 'error.object': e})
     return metadata
   metadata = () if metadata is None else tuple(metadata)
-  return metadata + tuple(headers.iteritems())
+  return metadata + tuple(iteritems(headers))
 
 
 class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,

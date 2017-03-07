@@ -4,6 +4,8 @@ import sys
 import argparse
 from collections import defaultdict
 
+from six import iteritems
+
 import grpc
 from concurrent import futures
 import lightstep
@@ -46,7 +48,7 @@ class Store(store_pb2.StoreServicer):
     return response
 
   def ListInventory(self, request, context):
-    for name, count in self._inventory.iteritems():
+    for name, count in iteritems(self._inventory):
       if not count:
         continue
       else:

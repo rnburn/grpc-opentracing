@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import sys
 import argparse
+from builtins import input
 
 import grpc
 import lightstep
@@ -135,7 +136,7 @@ def read_and_execute(rpc_executer):
   print(INSTRUCTIONS)
   while True:
     try:
-      line = raw_input('> ')
+      line = input('> ')
       components = line.split()
       if not components:
         continue
