@@ -1,16 +1,17 @@
 # A OpenTraced server for a Python service that implements the store interface.
-from concurrent import futures
 import time
 import sys
-
-import grpc
-
-import store_pb2
-from grpcext import intercept_server
-from otgrpc import open_tracing_server_interceptor
-import lightstep
 import argparse
 from collections import defaultdict
+
+import grpc
+from concurrent import futures
+import lightstep
+
+from grpcext import intercept_server
+from otgrpc import open_tracing_server_interceptor
+
+import store_pb2
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 

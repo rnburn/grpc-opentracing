@@ -1,15 +1,16 @@
 # A OpenTraced client for a Python service that implements the store interface.
 from __future__ import print_function
 
-import grpc
 import sys
+import argparse
 
-import store_pb2
+import grpc
+import lightstep
+
 from grpcext import intercept_channel
 from otgrpc import open_tracing_client_interceptor
-import lightstep
-import argparse
-import collections
+
+import store_pb2
 
 
 class RpcExecuter(object):
@@ -107,7 +108,7 @@ def execute_command(rpc_executer, command, command_arguments):
   else:
     print('Unknown command: "%s"' % command)
 
-instructions = \
+INSTRUCTIONS = \
 """Enter commands to interact with the store service:
 
     stock_item     Stock a single item.
@@ -131,7 +132,7 @@ Example:
 
 
 def read_and_execute(rpc_executer):
-  print(instructions)
+  print(INSTRUCTIONS)
   while True:
     try:
       line = raw_input('> ')

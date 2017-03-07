@@ -1,6 +1,9 @@
+"""Implementation of gRPC Python interceptors."""
+
+import collections
+
 import grpc
 import grpcext
-import collections
 
 
 class _StreamClientInfo(

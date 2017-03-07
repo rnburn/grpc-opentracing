@@ -1,5 +1,6 @@
-import six
 import abc
+
+import six
 
 
 class UnaryClientInterceptor(six.with_metaclass(abc.ABCMeta)):

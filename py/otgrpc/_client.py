@@ -1,3 +1,5 @@
+"""Implementation of client-side open-tracing interceptor."""
+
 import sys
 import logging
 
