@@ -141,3 +141,19 @@ class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
 def intercept_server(server, interceptor):
   from grpcext import _interceptor
   return _interceptor.intercept_server(server, interceptor)
+
+
+###################################  __all__  #################################
+
+
+__all__ = (
+    'UnaryClientInterceptor',
+    'StreamClientInfo',
+    'StreamClientInterceptor',
+    'UnaryServerInfo',
+    'StreamServerInfo',
+    'UnaryServerInterceptor',
+    'StreamServerInterceptor',
+    'intercept_channel',
+    'intercept_server',
+)

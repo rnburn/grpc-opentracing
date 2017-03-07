@@ -48,3 +48,13 @@ def open_tracing_server_interceptor(tracer, log_payloads=False):
     """
   from otgrpc import _server
   return _server.OpenTracingServerInterceptor(tracer, log_payloads)
+
+
+###################################  __all__  #################################
+
+
+__all__ = (
+    'ActiveSpanSource',
+    'open_tracing_client_interceptor',
+    'open_tracing_server_interceptor',
+)
