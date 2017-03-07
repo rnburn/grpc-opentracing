@@ -108,14 +108,13 @@ class UnaryServerInterceptor(six.with_metaclass(abc.ABCMeta)):
     """
 
   @abc.abstractmethod
-  def intercept_unary(self, request, metadata, server_info, handler):
+  def intercept_unary(self, request, servicer_context, server_info, handler):
     """A function to be called when a server-side, unary-unary RPC method is
           invoked.
 
         Args:
           request: The request value for the RPC.
-          metadata: Optional :term:`metadata` transmitted from the client-side
-            of the RPC.
+          servicer_context: A ServicerContext.
           server_info: A UnaryServerInfo containing various information about
             the RPC.
           handler:  The handler to complete the RPC on the server. It is the
@@ -133,13 +132,12 @@ class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
     """
 
   @abc.abstractmethod
-  def intercept_stream(self, metadata, server_info, handler):
+  def intercept_stream(self, servicer_context, server_info, handler):
     """A function to be called when a server-side, unary-stream,
           stream-unary, or stream-stream RPC method is invoked.
 
         Args:
-          metadata: Optional :term:`metadata` transmitted from the client-side
-            of the RPC.
+          servicer_context: A ServicerContext.
           server_info: A StreamServerInfo containing various information about
             the RPC.
           handler:  The handler to complete the RPC on the server. It is the

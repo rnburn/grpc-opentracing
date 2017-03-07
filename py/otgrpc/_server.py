@@ -1,4 +1,4 @@
-"""Implementation of server-side open-tracing interceptor."""
+"""Implementation of the server-side open-tracing interceptor."""
 
 import sys
 import logging
@@ -37,8 +37,8 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
     self._tracer = tracer
     self._log_payloads = log_payloads
 
-  def intercept_unary(self, request, metadata, server_info, handler):
-    with _start_server_span(self._tracer, metadata,
+  def intercept_unary(self, request, servicer_context, server_info, handler):
+    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
                             server_info.full_method) as span:
       response = None
       if self._log_payloads:
@@ -57,8 +57,8 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
   # For RPCs that stream responses, the result can be a generator. To record
   # the span across the generated responses and detect any errors, we wrap the
   # result in a new generator that yields the response values.
-  def _intercept_server_stream(self, metadata, server_info, handler):
-    with _start_server_span(self._tracer, metadata,
+  def _intercept_server_stream(self, servicer_context, server_info, handler):
+    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
                             server_info.full_method) as span:
       try:
         result = handler()
@@ -70,10 +70,10 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
         span.log_kv({'event': 'error', 'error.object': e})
         raise
 
-  def intercept_stream(self, metadata, server_info, handler):
+  def intercept_stream(self, servicer_context, server_info, handler):
     if server_info.is_server_stream:
-      return self._intercept_server_stream(metadata, server_info, handler)
-    with _start_server_span(self._tracer, metadata,
+      return self._intercept_server_stream(servicer_context, server_info, handler)
+    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
                             server_info.full_method) as span:
       try:
         return handler()
