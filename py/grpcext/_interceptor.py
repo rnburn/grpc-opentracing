@@ -339,8 +339,8 @@ class _InterceptorServer(grpc.Server):
   def add_secure_port(self, *args, **kwargs):
     self._server.add_secure_port(*args, **kwargs)
 
-  def start(self):
-    self._server.start()
+  def start(self, *args, **kwargs):
+    self._server.start(*args, **kwargs)
 
   def stop(self, *args, **kwargs):
     self._server.stop(*args, **kwargs)
