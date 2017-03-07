@@ -3,13 +3,13 @@ import abc
 
 
 class UnaryClientInterceptor(six.with_metaclass(abc.ABCMeta)):
-    """Invokes custom code when a client-side, unary-unary RPC method is
+  """Invokes custom code when a client-side, unary-unary RPC method is
       called.
     """
 
-    @abc.abstractmethod
-    def intercept_unary(self, method, request, metadata, invoker):
-        """A function to be called when a client-side, unary-unary RPC method is
+  @abc.abstractmethod
+  def intercept_unary(self, method, request, metadata, invoker):
+    """A function to be called when a client-side, unary-unary RPC method is
           invoked.
 
         Args:
@@ -23,11 +23,11 @@ class UnaryClientInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling invoker(request, metadata).
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class StreamClientInfo(six.with_metaclass(abc.ABCMeta)):
-    """Consists of various information about a stream RPC on the client-side.
+  """Consists of various information about a stream RPC on the client-side.
 
     Attributes:
       full_method: A string of the full RPC method, i.e.,
@@ -38,13 +38,13 @@ class StreamClientInfo(six.with_metaclass(abc.ABCMeta)):
 
 
 class StreamClientInterceptor(six.with_metaclass(abc.ABCMeta)):
-    """Invokes custom code when a client-side, unary-stream, stream-unary, or
+  """Invokes custom code when a client-side, unary-stream, stream-unary, or
       stream-stream RPC method is called.
     """
 
-    @abc.abstractmethod
-    def intercept_stream(self, metadata, client_info, invoker):
-        """A function to be called when a client-side, unary-stream,
+  @abc.abstractmethod
+  def intercept_stream(self, metadata, client_info, invoker):
+    """A function to be called when a client-side, unary-stream,
           stream-unary, or stream-stream RPC method is invoked.
 
         Args:
@@ -58,25 +58,26 @@ class StreamClientInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling invoker(metadata).
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 # TODO: support multiple interceptor arguments
 def intercept_channel(channel, interceptor):
-    from grpcext import _interceptor
-    return _interceptor.intercept_channel(channel, interceptor)
+  from grpcext import _interceptor
+  return _interceptor.intercept_channel(channel, interceptor)
 
 
 class UnaryServerInfo(six.with_metaclass(abc.ABCMeta)):
-    """Consists of various information about a unary RPC on the server-side.
+  """Consists of various information about a unary RPC on the server-side.
 
     Attributes:
       full_method: A string of the full RPC method, i.e.,
         /package.service/method.
     """
 
+
 class StreamServerInfo(six.with_metaclass(abc.ABCMeta)):
-    """Consists of various information about a stream RPC on the server-side.
+  """Consists of various information about a stream RPC on the server-side.
 
     Attributes:
       full_method: A string of the full RPC method, i.e.,
@@ -87,13 +88,13 @@ class StreamServerInfo(six.with_metaclass(abc.ABCMeta)):
 
 
 class UnaryServerInterceptor(six.with_metaclass(abc.ABCMeta)):
-    """Invokes custom code when a server-side, unary-unary RPC method is
+  """Invokes custom code when a server-side, unary-unary RPC method is
       called.
     """
 
-    @abc.abstractmethod
-    def intercept_unary(self, request, metadata, server_info, handler):
-        """A function to be called when a server-side, unary-unary RPC method is
+  @abc.abstractmethod
+  def intercept_unary(self, request, metadata, server_info, handler):
+    """A function to be called when a server-side, unary-unary RPC method is
           invoked.
 
         Args:
@@ -108,17 +109,17 @@ class UnaryServerInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling handler(request).
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
-    """Invokes custom code when a server-side, unary-stream, stream-unary, or
+  """Invokes custom code when a server-side, unary-stream, stream-unary, or
       stream-stream, RPC method is called.
     """
 
-    @abc.abstractmethod
-    def intercept_stream(self, metadata, server_info, handler):
-        """A function to be called when a server-side, unary-stream,
+  @abc.abstractmethod
+  def intercept_stream(self, metadata, server_info, handler):
+    """A function to be called when a server-side, unary-stream,
           stream-unary, or stream-stream RPC method is invoked.
 
         Args:
@@ -132,10 +133,10 @@ class StreamServerInterceptor(six.with_metaclass(abc.ABCMeta)):
         Returns:
           The result from calling handler().
         """
-        raise NotImplementedError()
+    raise NotImplementedError()
 
 
 # TODO: support multiple interceptor arguments
 def intercept_server(server, interceptor):
-    from grpcext import _interceptor
-    return _interceptor.intercept_server(server, interceptor)
+  from grpcext import _interceptor
+  return _interceptor.intercept_server(server, interceptor)
