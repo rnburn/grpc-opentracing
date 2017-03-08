@@ -2,14 +2,32 @@
 
 import sys
 import logging
+import re
 
 import grpcext
 import opentracing
 
 
-def _start_server_span(tracer, metadata, method):
+def _add_peer_tags(peer_str, tags):
+  ipv4_re = r"ipv4:(?P<address>.+):(?P<port>\d+)"
+  match = re.match(ipv4_re, peer_str)
+  if match:
+    tags['peer.ipv4'] = match.group('address')
+    tags['peer.port'] = match.group('port')
+    return
+  ipv6_re = r"ipv6:\[(?P<address>.+)\]:(?P<port>\d+)"
+  match = re.match(ipv6_re, peer_str)
+  if match:
+    tags['peer.ipv6'] = match.group('address')
+    tags['peer.port'] = match.group('port')
+    return
+  logging.warning('unrecognized peer: %s', peer_str)
+
+
+def _start_server_span(tracer, servicer_context, method):
   span_context = None
   error = None
+  metadata = servicer_context.invocation_metadata()
   try:
     if metadata:
       span_context = tracer.extract(opentracing.Format.HTTP_HEADERS,
@@ -19,10 +37,8 @@ def _start_server_span(tracer, metadata, method):
           opentracing.SpanContextCorruptedException) as e:
     logging.exception('tracer.extract() failed')
     error = e
-  # TODO: add peer.hostname, peer.ipv4, and other RPC fields that are
-  # mentioned on
-  # https://github.com/opentracing/specification/blob/master/semantic_conventions.md
   tags = {'component': 'grpc', 'span.kind': 'server'}
+  _add_peer_tags(servicer_context.peer(), tags)
   span = tracer.start_span(
       operation_name=method, child_of=span_context, tags=tags)
   if error is not None:
@@ -38,7 +54,7 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
     self._log_payloads = log_payloads
 
   def intercept_unary(self, request, servicer_context, server_info, handler):
-    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
+    with _start_server_span(self._tracer, servicer_context,
                             server_info.full_method) as span:
       response = None
       if self._log_payloads:
@@ -58,7 +74,7 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
   # the span across the generated responses and detect any errors, we wrap the
   # result in a new generator that yields the response values.
   def _intercept_server_stream(self, servicer_context, server_info, handler):
-    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
+    with _start_server_span(self._tracer, servicer_context,
                             server_info.full_method) as span:
       try:
         result = handler()
@@ -72,8 +88,9 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
 
   def intercept_stream(self, servicer_context, server_info, handler):
     if server_info.is_server_stream:
-      return self._intercept_server_stream(servicer_context, server_info, handler)
-    with _start_server_span(self._tracer, servicer_context.invocation_metadata(),
+      return self._intercept_server_stream(servicer_context, server_info,
+                                           handler)
+    with _start_server_span(self._tracer, servicer_context,
                             server_info.full_method) as span:
       try:
         return handler()
