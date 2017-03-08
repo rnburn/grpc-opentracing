@@ -34,9 +34,10 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
 
   def _start_span(self, method):
     active_span_context = None
-    if self._active_span_source:
-      active_span_context = \
-              self._active_span_source.get_active_span().context
+    if self._active_span_source is not None:
+      active_span = self._active_span_source.get_active_span()
+      if active_span is not None:
+        active_span_context = active_span.context
     # TODO: add peer.hostname, peer.ipv4, and other RPC fields that are
     # mentioned on
     # https://github.com/opentracing/specification/blob/master/semantic_conventions.md
