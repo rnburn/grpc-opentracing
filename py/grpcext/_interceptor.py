@@ -330,19 +330,19 @@ class _InterceptorServer(grpc.Server):
         _InterceptorGenericRpcHandler(generic_rpc_handler, self._interceptor)
         for generic_rpc_handler in generic_rpc_handlers
     ]
-    self._server.add_generic_rpc_handlers(generic_rpc_handlers)
+    return self._server.add_generic_rpc_handlers(generic_rpc_handlers)
 
   def add_insecure_port(self, *args, **kwargs):
-    self._server.add_insecure_port(*args, **kwargs)
+    return self._server.add_insecure_port(*args, **kwargs)
 
   def add_secure_port(self, *args, **kwargs):
-    self._server.add_secure_port(*args, **kwargs)
+    return self._server.add_secure_port(*args, **kwargs)
 
   def start(self, *args, **kwargs):
-    self._server.start(*args, **kwargs)
+    return self._server.start(*args, **kwargs)
 
   def stop(self, *args, **kwargs):
-    self._server.stop(*args, **kwargs)
+    return self._server.stop(*args, **kwargs)
 
 
 def intercept_server(server, *interceptors):
